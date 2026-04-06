@@ -236,11 +236,30 @@ function consumeRateLimit(clientId) {
   }
 }
 
+function normalizeOrigin(origin) {
+  if (typeof origin !== 'string') {
+    return ''
+  }
+
+  const trimmedOrigin = origin.trim()
+
+  if (!trimmedOrigin) {
+    return ''
+  }
+
+  try {
+    const parsedUrl = new URL(trimmedOrigin)
+    return `${parsedUrl.protocol}//${parsedUrl.host}`.toLowerCase()
+  } catch {
+    return trimmedOrigin.replace(/\/+$/, '').toLowerCase()
+  }
+}
+
 function isOriginAllowed(req) {
   const configuredOrigins = process.env.ALLOWED_ORIGIN
-  const requestOrigin = req.headers.origin
+  const requestOrigin = normalizeOrigin(req.headers.origin)
 
-  if (!requestOrigin || typeof requestOrigin !== 'string') {
+  if (!requestOrigin) {
     return true
   }
 
@@ -257,7 +276,7 @@ function isOriginAllowed(req) {
 
   const allowList = configuredOrigins
     .split(',')
-    .map((origin) => origin.trim())
+    .map((origin) => normalizeOrigin(origin))
     .filter(Boolean)
 
   return allowList.includes(requestOrigin)

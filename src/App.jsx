@@ -23,12 +23,14 @@ import {
 import { FaFacebookF, FaInstagram, FaLinkedinIn } from 'react-icons/fa'
 import './App.css'
 
-function useFadeIn() {
+function useFadeIn(trigger) {
   const ref = useRef(null)
 
   useEffect(() => {
     const element = ref.current
     if (!element) return
+
+    element.classList.remove('fade-in-visible') // Reset for re-trigger
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -42,7 +44,7 @@ function useFadeIn() {
 
     observer.observe(element)
     return () => observer.disconnect()
-  }, [])
+  }, [trigger]) // Re-run when trigger (e.g. exhibition state) changes
 
   return ref
 }
@@ -67,14 +69,127 @@ const techStack = [
   { name: 'PHP', icon: SiPhp, color: '#777bb4' },
 ]
 
+const sharedProjectModalData = {
+  developers: ['John Christian D. Fajutagana'],
+  overview:
+    'Designed and implemented a full authentication module that controls access by user role while keeping onboarding, recovery, and account management simple for end users.',
+  objectives: [
+    'Enforce strict role separation between admin, cashier, client, and guest accounts.',
+    'Provide a clean login and registration flow with low friction onboarding.',
+    'Support secure password recovery and account verification.',
+    'Keep the interface consistent across desktop and mobile views.',
+  ],
+  showcase: [
+    {
+      title: 'Landing Page',
+      description:
+        'Public-facing screens focused on trust, clarity, and conversion.',
+      images: [
+        { assetId: 'project-1', label: 'Hero section and value proposition' },
+        { assetId: 'project-2', label: 'Feature highlights and service cards' },
+        { assetId: 'project-3', label: 'CTA block and role preview' },
+        { assetId: 'project-4', label: 'Footer and quick links' },
+      ],
+    },
+    {
+      title: 'Login and Register',
+      description:
+        'Authentication screens designed for speed, readability, and error prevention.',
+      images: [
+        { assetId: 'project-1', label: 'Login form with remember me' },
+        { assetId: 'project-2', label: 'Forgot password and recovery' },
+        { assetId: 'project-3', label: 'Registration user information step' },
+        { assetId: 'project-5', label: 'Registration account details step' },
+      ],
+    },
+    {
+      title: 'Admin UI',
+      description:
+        'Administrative screens for account control, permissions, and audit visibility.',
+      images: [
+        { assetId: 'project-2', label: 'Admin dashboard overview' },
+        { assetId: 'project-4', label: 'User management panel' },
+        { assetId: 'project-1', label: 'Role assignment workflow' },
+        { assetId: 'project-3', label: 'Security and activity logs' },
+      ],
+    },
+    {
+      title: 'Cashier UI',
+      description:
+        'Operational screens optimized for fast transactions and queue handling.',
+      images: [
+        { assetId: 'project-4', label: 'Cashier dashboard and counters' },
+        { assetId: 'project-2', label: 'Payment and receipt workflow' },
+        { assetId: 'project-5', label: 'Customer lookup and quick actions' },
+        { assetId: 'project-1', label: 'Daily summary and balance checks' },
+      ],
+    },
+    {
+      title: 'Client UI',
+      description:
+        'Client portal screens for profile, requests, and account self-service.',
+      images: [
+        { assetId: 'project-1', label: 'Client home and status snapshot' },
+        { assetId: 'project-5', label: 'Client profile and account settings' },
+        { assetId: 'project-3', label: 'Request history and notifications' },
+        { assetId: 'project-4', label: 'Support and contact channels' },
+      ],
+    },
+    {
+      title: 'Guest UI',
+      description:
+        'Limited-access pages for discovery, inquiry, and account conversion.',
+      images: [
+        { assetId: 'project-3', label: 'Guest home with call-to-action' },
+        { assetId: 'project-2', label: 'Guest information and FAQ page' },
+        { assetId: 'project-5', label: 'Registration prompt and benefits' },
+        { assetId: 'project-1', label: 'Guest contact and onboarding path' },
+      ],
+    },
+  ],
+  features: [
+    {
+      icon: '🧭',
+      title: 'User Experience',
+      desc: 'Login and registration flows include clear field states, visibility toggle, and remember-me support.',
+    },
+    {
+      icon: '🔐',
+      title: 'Secure Recovery',
+      desc: 'Password reset is delivered only to registered emails, with immediate visual confirmation in the UI.',
+    },
+    {
+      icon: '🧾',
+      title: 'Automated Identification',
+      desc: 'Registration auto-generates unique account IDs based on user role and sequence rules.',
+    },
+    {
+      icon: '📨',
+      title: 'Welcome Notifications',
+      desc: 'Newly registered users receive an automatic welcome message after successful account creation.',
+    },
+    {
+      icon: '🛡️',
+      title: 'Role Segregation',
+      desc: 'Admins, cashiers, clients, and guests are isolated by route guards and scoped permissions.',
+    },
+    {
+      icon: '📱',
+      title: 'Responsive Components',
+      desc: 'All authentication and account screens maintain consistent behavior from mobile to desktop.',
+    },
+  ],
+}
+
 const projects = [
   {
-    title: 'Student Information Management System',
+    title: 'Role-Based Authentication System',
     year: '2025',
     assetId: 'project-1',
     summary:
-      'Built a full-stack student portal for enrollment, grading, and dashboard analytics with secure authentication.',
-    stack: ['Laravel', 'Blade', 'MySQL'],
+      'Built a secure, role-based authentication platform with tailored workflows for admin, cashier, client, and guest users.',
+    stack: ['Laravel', 'React', 'MySQL'],
+    ...sharedProjectModalData,
   },
   {
     title: 'Barangay Request Tracker',
@@ -83,6 +198,7 @@ const projects = [
     summary:
       'Created a web app to manage clearance and request workflows with status updates and printable records.',
     stack: ['Laravel', 'PHP', 'MySQL'],
+    ...sharedProjectModalData,
   },
   {
     title: 'Mindoro Campus Events Hub',
@@ -91,6 +207,7 @@ const projects = [
     summary:
       'Developed an events platform for announcements, registration, and attendance monitoring for campus activities.',
     stack: ['React', 'JavaScript', 'CSS'],
+    ...sharedProjectModalData,
   },
   {
     title: 'Inventory and Asset Monitoring Tool',
@@ -99,6 +216,7 @@ const projects = [
     summary:
       'Designed an internal tool for equipment monitoring, stock movement, and report generation by department.',
     stack: ['Python', 'PHP', 'MySQL'],
+    ...sharedProjectModalData,
   },
   {
     title: 'Portfolio and Certificate Archive',
@@ -107,6 +225,7 @@ const projects = [
     summary:
       'Implemented a personal website that showcases projects, certificates, and profile details with responsive design.',
     stack: ['React', 'HTML', 'CSS'],
+    ...sharedProjectModalData,
   },
 ]
 
@@ -161,16 +280,16 @@ const contactItems = [
     icon: SiGmail,
     value: 'christiannjc25@gmail.com',
     mobileValue: 'christiannjc25@gmail.com',
-    color: '#d14836',
-    darkColor: '#ef6a5a',
+    color: '#ea4335',
+    darkColor: '#ff6b6b',
   },
   {
     key: 'phone',
     icon: MdCall,
     value: '+63 966 9036 917',
     mobileValue: '+63 966 9036 917',
-    color: '#0f9d58',
-    darkColor: '#2bc36b',
+    color: '#34a853',
+    darkColor: '#51cf66',
   },
   {
     key: 'github',
@@ -178,15 +297,15 @@ const contactItems = [
     value: 'github.com/jcyy2520-sudo',
     mobileValue: 'github.com/jcyy2520-sudo',
     color: '#111827',
-    darkColor: '#f3f4f6',
+    darkColor: '#f8f9fa',
   },
   {
     key: 'location',
     icon: MdLocationOn,
     value: 'Poblacion, Bansud, Oriental Mindoro, Philippines',
     mobileValue: 'Bansud, Oriental Mindoro',
-    color: '#2563eb',
-    darkColor: '#64a2ff',
+    color: '#4285f4',
+    darkColor: '#74c0fc',
   },
 ]
 
@@ -204,6 +323,7 @@ function App() {
       href: `mailto:${contactEmail}`,
       icon: SiGmail,
       external: false,
+      color: '#ea4335',
     },
     {
       key: 'phone',
@@ -212,6 +332,7 @@ function App() {
       href: contactPhoneHref,
       icon: MdCall,
       external: false,
+      color: '#34a853',
     },
     {
       key: 'location',
@@ -220,6 +341,7 @@ function App() {
       href: mapsHref,
       icon: MdLocationOn,
       external: true,
+      color: '#4285f4',
     },
   ]
 
@@ -230,6 +352,7 @@ function App() {
       href: 'https://www.linkedin.com/',
       icon: FaLinkedinIn,
       external: true,
+      color: '#0077b5',
     },
     {
       key: 'instagram',
@@ -237,6 +360,7 @@ function App() {
       href: 'https://www.instagram.com/',
       icon: FaInstagram,
       external: true,
+      color: '#e1306c',
     },
     {
       key: 'facebook',
@@ -244,6 +368,7 @@ function App() {
       href: 'https://www.facebook.com/',
       icon: FaFacebookF,
       external: true,
+      color: '#1877f2',
     },
   ]
 
@@ -264,7 +389,7 @@ function App() {
   })
 
   const [activeModal, setActiveModal] = useState(null)
-  const [activeContact, setActiveContact] = useState('email')
+  const [activeShowcaseIndex, setActiveShowcaseIndex] = useState(0)
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [hasOpenedChat, setHasOpenedChat] = useState(false)
   const [chatInput, setChatInput] = useState('')
@@ -283,6 +408,9 @@ function App() {
     },
   ])
   const [secureAssetUrls, setSecureAssetUrls] = useState({})
+  const [expandedContact, setExpandedContact] = useState(null)
+  const [exhibition, setExhibition] = useState(null)
+  const [activePreviewImage, setActivePreviewImage] = useState(null)
   const chatMessagesEndRef = useRef(null)
 
   useEffect(() => {
@@ -293,6 +421,11 @@ function App() {
   useEffect(() => {
     const closeOnEscape = (event) => {
       if (event.key === 'Escape') {
+        if (activePreviewImage) {
+          setActivePreviewImage(null)
+          return
+        }
+
         setActiveModal(null)
         setIsThankYouModalOpen(false)
       }
@@ -303,7 +436,7 @@ function App() {
     return () => {
       window.removeEventListener('keydown', closeOnEscape)
     }
-  }, [])
+  }, [activePreviewImage])
 
   const secureAssetIds = useMemo(
     () => [
@@ -320,7 +453,7 @@ function App() {
 
     const fetchSecureAssetUrls = async () => {
       try {
-        const response = await fetch('/api/asset-token', {
+        const response = await fetch('/_srv/asset-token', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -376,6 +509,12 @@ function App() {
     [],
   )
 
+  const exhibitionSubtitles = {
+    projects: 'A detailed gallery of my work in full-stack development, database architecture, and UI/UX implementation.',
+    experience: 'A comprehensive history of my professional journey, internships, and technical training.',
+    certificates: 'A collection of official certifications and workshops that validate my technical foundation.',
+  }
+
   const getSecureAssetUrl = (assetId) => {
     if (typeof assetId !== 'string') {
       return IMAGE_FALLBACK_SRC
@@ -390,6 +529,8 @@ function App() {
         ? project.image
         : getSecureAssetUrl(project.assetId)
 
+    setActivePreviewImage(null)
+    setActiveShowcaseIndex(0)
     setActiveModal({
       type: 'project-detail',
       title: project.title,
@@ -397,6 +538,7 @@ function App() {
       image,
       description: project.summary,
       tags: project.stack,
+      data: project // Pass full details
     })
   }
 
@@ -409,16 +551,17 @@ function App() {
     })
   }
 
-  const openExperienceListModal = () => {
-    setActiveModal({ type: 'experience-list', title: 'All Experience' })
+  const openExperienceListExhibition = () => {
+    setExhibition({ type: 'experience', title: 'All Experience' })
+    window.scrollTo({ top: 0, behavior: 'instant' })
   }
-
-  const openProjectsListModal = () => {
-    setActiveModal({ type: 'projects-list', title: 'All Projects' })
+  const openProjectsListExhibition = () => {
+    setExhibition({ type: 'projects', title: 'All Projects' })
+    window.scrollTo({ top: 0, behavior: 'instant' })
   }
-
-  const openCertificatesListModal = () => {
-    setActiveModal({ type: 'certificates-list', title: 'All Certificates' })
+  const openCertificatesListExhibition = () => {
+    setExhibition({ type: 'certificates', title: 'All Certificates' })
+    window.scrollTo({ top: 0, behavior: 'instant' })
   }
 
   const updateVisitorMessageField = (field, value) => {
@@ -463,7 +606,7 @@ function App() {
     setIsVisitorMessageSending(true)
 
     try {
-      const response = await fetch('/api/contact', {
+      const response = await fetch('/_srv/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -519,7 +662,7 @@ function App() {
     setIsChatSending(true)
 
     try {
-      const response = await fetch('/api/chat', {
+      const response = await fetch('/_srv/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -565,74 +708,144 @@ function App() {
 
   const isDarkMode = theme === 'dark'
 
-  const fadeRefStack = useFadeIn()
-  const fadeRefMain = useFadeIn()
-  const fadeRefCerts = useFadeIn()
-  const fadeRefMessage = useFadeIn()
-  const fadeRefFooter = useFadeIn()
+  const fadeRefStack = useFadeIn(exhibition)
+  const fadeRefMain = useFadeIn(exhibition)
+  const fadeRefCerts = useFadeIn(exhibition)
+  const fadeRefMessage = useFadeIn(exhibition)
+  const fadeRefFooter = useFadeIn(exhibition)
 
   return (
     <main className="portfolio-page">
-      <header className="hero-card panel">
-        <button
-          type="button"
-          className="theme-toggle hero-theme-toggle"
-          aria-label={
-            isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'
-          }
-          onClick={() => setTheme(isDarkMode ? 'light' : 'dark')}
-        >
-          {isDarkMode ? <FiSun /> : <FiMoon />}
-        </button>
-        <div className="hero-grid">
-          <div className="profile-slot">
-            <img src={getSecureAssetUrl(PROFILE_ASSET_ID)} alt="Profile" />
-          </div>
-          <div className="hero-copy">
-            <h1>John Christian D. Fajutagana</h1>
-            <p className="hero-role">Junior System Analyst</p>
-            <p className="hero-intro">
-              I build full-stack web applications using Laravel and React,
-              focusing on clean architecture, reliable backend logic, and
-              long-term maintainability. From database design and API
-              development to responsive frontends and authentication flows, I
-              handle every layer of the stack. My goal is to create practical
-              digital solutions that perform well, scale with real user needs,
-              and are built to last.
-            </p>
-            <div className="contact-strip" aria-label="Contact details">
-              {contactItems.map((item) => {
-                const Icon = item.icon
-                const isActive = activeContact === item.key
-                const mobileContactText =
-                  typeof item.mobileValue === 'string' && item.mobileValue
-                    ? item.mobileValue
-                    : item.value
+      {exhibition ? (
+        <section className={`exhibition-view exhibition-view-${exhibition.type}`}>
+          <header className="exhibition-header">
+            <button
+              className="back-home-link"
+              onClick={() => setExhibition(null)}
+            >
+              <span className="arrow">←</span> Back to Home
+            </button>
+            <h1>{exhibition.title}</h1>
+            <p className="exhibition-subtitle">{exhibitionSubtitles[exhibition.type]}</p>
+          </header>
 
+          {exhibition.type === 'experience' && (
+            <div className="exhibition-grid-stack">
+              {experiences.map((experience) => (
+                <article key={experience.role} className="exhibition-card exhibition-card-experience">
+                  <div className="exhibition-card-content">
+                    <div className="experience-head">
+                      <h3>{experience.role}</h3>
+                      <span className="section-year education-year experience-year">{experience.period}</span>
+                    </div>
+                    <p>{experience.detail}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+
+          {exhibition.type === 'projects' && (
+            <div className="exhibition-grid-gallery">
+              {projects.map((project) => {
+                const projectImage = getSecureAssetUrl(project.assetId)
                 return (
-                  <button
-                    key={item.key}
-                    type="button"
-                    className={`contact-chip ${isActive ? 'active' : ''}`}
-                    onClick={() => setActiveContact(item.key)}
-                    aria-label={item.value}
-                    style={{
-                      '--contact-color': item.color,
-                      '--contact-color-dark': item.darkColor,
-                    }}
-                  >
-                    <span className="contact-icon-wrap">
-                      <Icon />
-                    </span>
-                    <span className="contact-value">{item.value}</span>
-                    <span className="contact-mobile-label">{mobileContactText}</span>
-                  </button>
+                  <article key={project.title} className="project-card exhibition-card">
+                    <button
+                      type="button"
+                      className="project-toggle"
+                      onClick={() => openProjectModal({ ...project, image: projectImage })}
+                    >
+                      <img src={projectImage} alt={project.title} />
+                      <div className="exhibition-card-content">
+                        <h3>{project.title}</h3>
+                        <p className="exhibition-card-desc">{project.summary}</p>
+                        <div className="exhibition-card-actions">
+                          <span className="action-link">View details</span>
+                        </div>
+                      </div>
+                    </button>
+                  </article>
                 )
               })}
             </div>
-          </div>
-        </div>
-      </header>
+          )}
+
+          {exhibition.type === 'certificates' && (
+            <div className="exhibition-grid-gallery">
+              {certificates.map((certificate) => {
+                const certificateImage = getSecureAssetUrl(certificate.assetId)
+                return (
+                  <article key={certificate.title} className="certificate-card exhibition-card">
+                    <img src={certificateImage} alt={certificate.title} />
+                    <div className="exhibition-card-content">
+                      <h3>{certificate.title}</h3>
+                      <p className="exhibition-card-desc">{certificate.source}</p>
+                      <button
+                        type="button"
+                        className="view-link exhibition-view-button"
+                        onClick={() => openCertificateModal({ ...certificate, image: certificateImage })}
+                      >
+                        View
+                      </button>
+                    </div>
+                  </article>
+                )
+              })}
+            </div>
+          )}
+        </section>
+      ) : (
+        <>
+          <header className="hero-card panel">
+            <button
+              type="button"
+              className="theme-toggle hero-theme-toggle"
+              aria-label={
+                isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'
+              }
+              onClick={() => setTheme(isDarkMode ? 'light' : 'dark')}
+            >
+              {isDarkMode ? <FiSun /> : <FiMoon />}
+            </button>
+            <div className="hero-grid">
+              <div className="profile-slot">
+                <img src={getSecureAssetUrl(PROFILE_ASSET_ID)} alt="Profile" />
+              </div>
+              <div className="hero-copy">
+                <h1>John Christian D. Fajutagana</h1>
+                <p className="hero-role">Junior System Analyst</p>
+                <p className="hero-intro">
+                  I build full-stack web applications using Laravel and React,
+                  focusing on clean architecture, reliable backend logic, and
+                  long-term maintainability. From database design and API
+                  development to responsive frontends and authentication flows, I
+                  handle every layer of the stack. My goal is to create practical
+                  digital solutions that perform well, scale with real user needs,
+                  and are built to last.
+                </p>
+                <div className="hero-contact-grid" aria-label="Contact details">
+                  {contactItems.map((item) => {
+                    const Icon = item.icon
+                    const isExpanded = expandedContact === item.key
+                    return (
+                      <button
+                        key={item.key}
+                        type="button"
+                        className={`hero-contact-item ${isExpanded ? 'expanded' : ''}`}
+                        onClick={() => setExpandedContact(isExpanded ? null : item.key)}
+                        aria-expanded={isExpanded}
+                        aria-label={`Show ${item.key} info`}
+                      >
+                        <Icon className="hero-contact-icon" style={{ color: isDarkMode ? item.darkColor || item.color : item.color }} />
+                        <span className="hero-contact-text">{item.value}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+          </header>
 
       <section className="panel fade-in" ref={fadeRefStack}>
         <div className="section-heading">
@@ -657,49 +870,53 @@ function App() {
       </section>
 
       <section className="main-content-grid fade-in" ref={fadeRefMain}>
-        <div className="left-column">
-          <section className="panel experience-panel">
-            <div className="section-heading">
-              <h2>Experience</h2>
-              <button
-                className="action-button section-view-button"
-                type="button"
-                onClick={openExperienceListModal}
-              >
-                View All
-              </button>
-            </div>
-            <div className="experience-list">
-              {visibleExperience.map((experience) => (
-                <article key={experience.role} className="experience-card">
-                  <div className="experience-head">
-                    <h3>{experience.role}</h3>
-                    <span className="section-year">{experience.period}</span>
-                  </div>
-                  <p>{experience.detail}</p>
-                </article>
-              ))}
-            </div>
-          </section>
+        <section className="panel experience-panel" id="experience-section">
+          <div className="section-heading">
+            <h2>Experience</h2>
+            <button
+              className="action-button section-view-button"
+              type="button"
+              onClick={openExperienceListExhibition}
+            >
+              View All
+            </button>
+          </div>
+          <div className="experience-list">
+            {visibleExperience.map((experience) => (
+              <article key={experience.role} className="experience-card">
+                <div className="experience-head">
+                  <h3>{experience.role}</h3>
+                  <span className="section-year education-year experience-year">{experience.period}</span>
+                </div>
+                <p>{experience.detail}</p>
+              </article>
+            ))}
+          </div>
+        </section>
 
-          <section className="panel education-panel">
-            <div className="education-head-row">
-              <h2>Education</h2>
-              <p className="education-year section-year">2023 - 2027</p>
-            </div>
+        <section className="panel education-panel" id="education-section">
+          <div className="education-head-row">
+            <h2>Education</h2>
+            <p className="education-year section-year">2023 - 2027</p>
+          </div>
+          <div className="education-body">
             <h3>Bachelor of Science in Information Technology</h3>
-            <p>Mindoro State University - Bongabong Campus</p>
-            <p>Labasan, Bongabong, Oriental Mindoro, Philippines</p>
-          </section>
-        </div>
+            <p className="education-campus">Mindoro State University - Bongabong Campus</p>
+            <p className="education-location">Labasan, Bongabong, Oriental Mindoro, Philippines</p>
+          </div>
+          <div className="education-meta" aria-label="Education highlights">
+            <span className="education-pill">Undergraduate Program</span>
+            <span className="education-pill">Systems and Full-Stack Development Focus</span>
+          </div>
+        </section>
 
-        <section className="panel projects-panel">
+        <section className="panel projects-panel" id="projects-section">
           <div className="section-heading">
             <h2>Projects</h2>
             <button
               className="action-button section-view-button"
               type="button"
-              onClick={openProjectsListModal}
+              onClick={openProjectsListExhibition}
             >
               View All
             </button>
@@ -731,7 +948,6 @@ function App() {
             })}
           </div>
         </section>
-
       </section>
 
       <section className="panel fade-in" ref={fadeRefCerts}>
@@ -740,7 +956,7 @@ function App() {
           <button
             className="action-button section-view-button"
             type="button"
-            onClick={openCertificatesListModal}
+            onClick={openCertificatesListExhibition}
           >
             View All
           </button>
@@ -794,13 +1010,13 @@ function App() {
                 return (
                   <a
                     key={`message-rail-${item.key}`}
-                    className="visitor-contact-row"
+                    className="visitor-contact-row minimal-row"
                     href={item.href}
                     target={item.external ? '_blank' : undefined}
                     rel={item.external ? 'noreferrer' : undefined}
                     aria-label={`Open ${item.title}`}
                   >
-                    <span className="visitor-contact-row-icon" aria-hidden="true">
+                    <span className="visitor-contact-row-icon" style={{ color: item.color }} aria-hidden="true">
                       <Icon />
                     </span>
                     <span className="visitor-contact-row-copy">
@@ -832,6 +1048,7 @@ function App() {
                       target={item.external ? '_blank' : undefined}
                       rel={item.external ? 'noreferrer' : undefined}
                       aria-label={item.label}
+                      style={{ color: item.color }}
                     >
                       <Icon />
                     </a>
@@ -888,13 +1105,12 @@ function App() {
               <span>{isVisitorMessageSending ? 'Sending...' : 'Send Message'}</span>
             </button>
 
-            <p className="visitor-message-direct">
-              Prefer direct email?{' '}
-              <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
-            </p>
+
           </form>
         </div>
       </section>
+      </>
+      )}
 
       <footer className="site-footer fade-in" ref={fadeRefFooter}>
         <p>© 2026 John Christian D.. All Rights Reserved.</p>
@@ -948,7 +1164,10 @@ function App() {
         <div
           className="modal-overlay"
           role="presentation"
-          onClick={() => setActiveModal(null)}
+          onClick={() => {
+            setActivePreviewImage(null)
+            setActiveModal(null)
+          }}
         >
           <section
             className="modal-card"
@@ -961,23 +1180,35 @@ function App() {
               type="button"
               className="modal-close"
               aria-label="Close modal"
-              onClick={() => setActiveModal(null)}
+              onClick={() => {
+                setActivePreviewImage(null)
+                setActiveModal(null)
+              }}
             >
               <FiX />
             </button>
             {activeModal.type === 'project-detail' ||
             activeModal.type === 'certificate-detail' ? (
-              <>
-                <img src={activeModal.image} alt={activeModal.title} />
+              <div className="modal-scroll-area">
+                <img
+                  src={activeModal.image}
+                  alt={activeModal.title}
+                  className="modal-cover-img"
+                />
                 <div className="modal-content">
                   <p className="modal-type">
                     {activeModal.type === 'project-detail'
                       ? 'Project'
                       : 'Certificate'}
                   </p>
-                  <h3 id="modal-title">{activeModal.title}</h3>
-                  <p className="modal-subtitle">{activeModal.subtitle}</p>
-                  {activeModal.description ? <p>{activeModal.description}</p> : null}
+                  <div className="modal-title-row">
+                    <span className="modal-title-filler" aria-hidden="true"></span>
+                    <h3 id="modal-title" className="modal-main-title">{activeModal.title}</h3>
+                    <p className="modal-subtitle modal-year">{activeModal.subtitle}</p>
+                  </div>
+                  
+                  {activeModal.description ? <p className="modal-summary-text">{activeModal.description}</p> : null}
+                  
                   {activeModal.tags ? (
                     <div className="project-tags modal-tags">
                       {activeModal.tags.map((item) => (
@@ -985,8 +1216,131 @@ function App() {
                       ))}
                     </div>
                   ) : null}
+
+                  {activeModal.data?.overview && (
+                    <div className="modal-detail-section">
+                      <h4>System Overview</h4>
+                      <p>{activeModal.data.overview}</p>
+                    </div>
+                  )}
+
+                  {activeModal.data?.objectives && (
+                    <div className="modal-detail-section">
+                      <h4>Objectives</h4>
+                      <ul className="modal-list">
+                        {activeModal.data.objectives.map((obj, i) => (
+                          <li key={i}>{obj}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {activeModal.data?.showcase?.length ? (
+                    (() => {
+                      const selectedIndex = Math.min(
+                        activeShowcaseIndex,
+                        activeModal.data.showcase.length - 1,
+                      )
+                      const selectedSection = activeModal.data.showcase[selectedIndex]
+
+                      return (
+                        <div className="modal-showcase">
+                          <div className="showcase-tab-list" role="tablist" aria-label="Project UI categories">
+                            {activeModal.data.showcase.map((section, idx) => (
+                              <button
+                                key={`${section.title}-${idx}`}
+                                type="button"
+                                role="tab"
+                                aria-selected={selectedIndex === idx}
+                                className={`showcase-tab-button ${selectedIndex === idx ? 'active' : ''}`}
+                                onClick={() => setActiveShowcaseIndex(idx)}
+                              >
+                                {section.title}
+                              </button>
+                            ))}
+                          </div>
+                          <div className="showcase-head">
+                            <h4 className="showcase-section-title">{selectedSection.title}</h4>
+                            {selectedSection.description ? (
+                              <p className="showcase-section-note">{selectedSection.description}</p>
+                            ) : null}
+                          </div>
+
+                          <div className="showcase-grid-dual">
+                            {selectedSection.images.slice(0, 4).map((imageItem, i) => {
+                              const normalizedImage =
+                                typeof imageItem === 'string'
+                                  ? {
+                                      assetId: imageItem,
+                                      label: `${selectedSection.title} screen ${i + 1}`,
+                                    }
+                                  : imageItem
+
+                              const imageSrc =
+                                typeof normalizedImage?.src === 'string' &&
+                                normalizedImage.src
+                                  ? normalizedImage.src
+                                  : getSecureAssetUrl(
+                                      normalizedImage?.assetId ||
+                                        activeModal.data.assetId,
+                                    )
+
+                              const imageLabel =
+                                typeof normalizedImage?.label === 'string' &&
+                                normalizedImage.label
+                                  ? normalizedImage.label
+                                  : `${selectedSection.title} screen ${i + 1}`
+
+                              return (
+                                <figure key={i} className="showcase-img-box">
+                                  <button
+                                    type="button"
+                                    className="showcase-img-trigger"
+                                    onClick={() =>
+                                      setActivePreviewImage({
+                                        src: imageSrc,
+                                        alt: `${selectedSection.title} - ${imageLabel}`,
+                                        caption: imageLabel,
+                                      })
+                                    }
+                                    aria-label={`Expand preview: ${imageLabel}`}
+                                  >
+                                    <img
+                                      src={imageSrc}
+                                      alt={`${selectedSection.title} - ${imageLabel}`}
+                                      loading="lazy"
+                                    />
+                                  </button>
+                                  <figcaption className="showcase-img-caption">
+                                    {imageLabel}
+                                  </figcaption>
+                                </figure>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )
+                    })()
+                  ) : null}
+
+                  {activeModal.data?.features && (
+                    <ul className="modal-features-list">
+                      {activeModal.data.features.map((feature, i) => (
+                        <li key={i} className="modal-feature-line">
+                          <span className="feature-icon">{feature.icon}</span>
+                          <p>
+                            <strong>{feature.title}:</strong> {feature.desc}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  
+                  {activeModal.data?.developers && (
+                    <p className="developers-row">Developers: {activeModal.data.developers.join(', ')}</p>
+                  )}
                 </div>
-              </>
+              </div>
             ) : null}
 
             {activeModal.type === 'experience-list' ? (
@@ -998,7 +1352,7 @@ function App() {
                     <article key={experience.role} className="experience-card">
                       <div className="experience-head">
                         <h3>{experience.role}</h3>
-                        <span className="section-year">{experience.period}</span>
+                        <span className="section-year education-year experience-year">{experience.period}</span>
                       </div>
                       <p>{experience.detail}</p>
                     </article>
@@ -1075,6 +1429,37 @@ function App() {
                 </div>
               </div>
             ) : null}
+          </section>
+        </div>
+      ) : null}
+
+      {activePreviewImage ? (
+        <div
+          className="lightbox-overlay"
+          role="presentation"
+          onClick={() => setActivePreviewImage(null)}
+        >
+          <section
+            className="lightbox-card"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Expanded project UI image"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="lightbox-close"
+              aria-label="Close image preview"
+              onClick={() => setActivePreviewImage(null)}
+            >
+              <FiX />
+            </button>
+            <img
+              src={activePreviewImage.src}
+              alt={activePreviewImage.alt}
+              className="lightbox-image"
+            />
+            <p className="lightbox-caption">{activePreviewImage.caption}</p>
           </section>
         </div>
       ) : null}

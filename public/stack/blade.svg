@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Blade logo">
+  <defs>
+    <linearGradient id="bladeGradient" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#ff4f39" />
+      <stop offset="100%" stop-color="#f46b28" />
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="24" fill="#fff4ee" />
+  <path d="M22 78c20-35 47-52 84-52L74 82H22z" fill="url(#bladeGradient)" />
+  <path d="M42 96c16-26 32-39 58-42L84 96H42z" fill="#c53423" opacity="0.88" />
+</svg>

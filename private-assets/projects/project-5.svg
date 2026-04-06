@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" role="img" aria-label="Project image 5">
+  <defs>
+    <linearGradient id="g5" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#dff0ea" />
+      <stop offset="100%" stop-color="#d6e8e1" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="700" fill="url(#g5)" />
+  <text x="600" y="380" text-anchor="middle" font-size="70" fill="#2a5848" font-family="Arial, sans-serif">Project Image 5</text>
+</svg>

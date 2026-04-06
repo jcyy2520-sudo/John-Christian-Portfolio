@@ -1,4 +1,9 @@
 {
+  "functions": {
+    "api/secure-asset.js": {
+      "includeFiles": "private-assets/**"
+    }
+  },
   "headers": [
     {
       "source": "/(.*)",

@@ -10,6 +10,16 @@ export default defineConfig({
         target: 'http://localhost:8787',
         changeOrigin: false,
       },
+      '/_srv': {
+        target: 'http://localhost:8787',
+        rewrite: (path) => path.replace(/^\/_srv/, '/api'),
+        changeOrigin: false,
+      },
+      '/_internal': {
+        target: 'http://localhost:8787',
+        rewrite: (path) => path.replace(/^\/_internal\/asset-proxy/, '/api/secure-asset'),
+        changeOrigin: false,
+      },
     },
   },
   build: {

@@ -21,9 +21,11 @@ import {
   SiReact,
 } from 'react-icons/si'
 import { FaFacebookF, FaInstagram, FaLinkedinIn } from 'react-icons/fa'
+import { sharedProjectData, projects as projectDataList } from './data/projectData'
 import './App.css'
+import ProjectPage from './components/ProjectPage'
 
-function useFadeIn(trigger) {
+function useFadeIn(...triggers) {
   const ref = useRef(null)
 
   useEffect(() => {
@@ -44,7 +46,7 @@ function useFadeIn(trigger) {
 
     observer.observe(element)
     return () => observer.disconnect()
-  }, [trigger]) // Re-run when trigger (e.g. exhibition state) changes
+  }, triggers) // Re-run when any trigger changes
 
   return ref
 }
@@ -69,165 +71,7 @@ const techStack = [
   { name: 'PHP', icon: SiPhp, color: '#777bb4' },
 ]
 
-const sharedProjectModalData = {
-  developers: ['John Christian D. Fajutagana'],
-  overview:
-    'Designed and implemented a full authentication module that controls access by user role while keeping onboarding, recovery, and account management simple for end users.',
-  objectives: [
-    'Enforce strict role separation between admin, cashier, client, and guest accounts.',
-    'Provide a clean login and registration flow with low friction onboarding.',
-    'Support secure password recovery and account verification.',
-    'Keep the interface consistent across desktop and mobile views.',
-  ],
-  showcase: [
-    {
-      title: 'Landing Page',
-      description:
-        'Public-facing screens focused on trust, clarity, and conversion.',
-      images: [
-        { assetId: 'project-1', label: 'Hero section and value proposition' },
-        { assetId: 'project-2', label: 'Feature highlights and service cards' },
-        { assetId: 'project-3', label: 'CTA block and role preview' },
-        { assetId: 'project-4', label: 'Footer and quick links' },
-      ],
-    },
-    {
-      title: 'Login and Register',
-      description:
-        'Authentication screens designed for speed, readability, and error prevention.',
-      images: [
-        { assetId: 'project-1', label: 'Login form with remember me' },
-        { assetId: 'project-2', label: 'Forgot password and recovery' },
-        { assetId: 'project-3', label: 'Registration user information step' },
-        { assetId: 'project-5', label: 'Registration account details step' },
-      ],
-    },
-    {
-      title: 'Admin UI',
-      description:
-        'Administrative screens for account control, permissions, and audit visibility.',
-      images: [
-        { assetId: 'project-2', label: 'Admin dashboard overview' },
-        { assetId: 'project-4', label: 'User management panel' },
-        { assetId: 'project-1', label: 'Role assignment workflow' },
-        { assetId: 'project-3', label: 'Security and activity logs' },
-      ],
-    },
-    {
-      title: 'Cashier UI',
-      description:
-        'Operational screens optimized for fast transactions and queue handling.',
-      images: [
-        { assetId: 'project-4', label: 'Cashier dashboard and counters' },
-        { assetId: 'project-2', label: 'Payment and receipt workflow' },
-        { assetId: 'project-5', label: 'Customer lookup and quick actions' },
-        { assetId: 'project-1', label: 'Daily summary and balance checks' },
-      ],
-    },
-    {
-      title: 'Client UI',
-      description:
-        'Client portal screens for profile, requests, and account self-service.',
-      images: [
-        { assetId: 'project-1', label: 'Client home and status snapshot' },
-        { assetId: 'project-5', label: 'Client profile and account settings' },
-        { assetId: 'project-3', label: 'Request history and notifications' },
-        { assetId: 'project-4', label: 'Support and contact channels' },
-      ],
-    },
-    {
-      title: 'Guest UI',
-      description:
-        'Limited-access pages for discovery, inquiry, and account conversion.',
-      images: [
-        { assetId: 'project-3', label: 'Guest home with call-to-action' },
-        { assetId: 'project-2', label: 'Guest information and FAQ page' },
-        { assetId: 'project-5', label: 'Registration prompt and benefits' },
-        { assetId: 'project-1', label: 'Guest contact and onboarding path' },
-      ],
-    },
-  ],
-  features: [
-    {
-      icon: '🧭',
-      title: 'User Experience',
-      desc: 'Login and registration flows include clear field states, visibility toggle, and remember-me support.',
-    },
-    {
-      icon: '🔐',
-      title: 'Secure Recovery',
-      desc: 'Password reset is delivered only to registered emails, with immediate visual confirmation in the UI.',
-    },
-    {
-      icon: '🧾',
-      title: 'Automated Identification',
-      desc: 'Registration auto-generates unique account IDs based on user role and sequence rules.',
-    },
-    {
-      icon: '📨',
-      title: 'Welcome Notifications',
-      desc: 'Newly registered users receive an automatic welcome message after successful account creation.',
-    },
-    {
-      icon: '🛡️',
-      title: 'Role Segregation',
-      desc: 'Admins, cashiers, clients, and guests are isolated by route guards and scoped permissions.',
-    },
-    {
-      icon: '📱',
-      title: 'Responsive Components',
-      desc: 'All authentication and account screens maintain consistent behavior from mobile to desktop.',
-    },
-  ],
-}
-
-const projects = [
-  {
-    title: 'Role-Based Authentication System',
-    year: '2025',
-    assetId: 'project-1',
-    summary:
-      'Built a secure, role-based authentication platform with tailored workflows for admin, cashier, client, and guest users.',
-    stack: ['Laravel', 'React', 'MySQL'],
-    ...sharedProjectModalData,
-  },
-  {
-    title: 'Barangay Request Tracker',
-    year: '2025',
-    assetId: 'project-2',
-    summary:
-      'Created a web app to manage clearance and request workflows with status updates and printable records.',
-    stack: ['Laravel', 'PHP', 'MySQL'],
-    ...sharedProjectModalData,
-  },
-  {
-    title: 'Mindoro Campus Events Hub',
-    year: '2024',
-    assetId: 'project-3',
-    summary:
-      'Developed an events platform for announcements, registration, and attendance monitoring for campus activities.',
-    stack: ['React', 'JavaScript', 'CSS'],
-    ...sharedProjectModalData,
-  },
-  {
-    title: 'Inventory and Asset Monitoring Tool',
-    year: '2024',
-    assetId: 'project-4',
-    summary:
-      'Designed an internal tool for equipment monitoring, stock movement, and report generation by department.',
-    stack: ['Python', 'PHP', 'MySQL'],
-    ...sharedProjectModalData,
-  },
-  {
-    title: 'Portfolio and Certificate Archive',
-    year: '2023',
-    assetId: 'project-5',
-    summary:
-      'Implemented a personal website that showcases projects, certificates, and profile details with responsive design.',
-    stack: ['React', 'HTML', 'CSS'],
-    ...sharedProjectModalData,
-  },
-]
+const projects = projectDataList
 
 const experiences = [
   {
@@ -411,7 +255,36 @@ function App() {
   const [expandedContact, setExpandedContact] = useState(null)
   const [exhibition, setExhibition] = useState(null)
   const [activePreviewImage, setActivePreviewImage] = useState(null)
+  const [currentPath, setCurrentPath] = useState(window.location.pathname)
   const chatMessagesEndRef = useRef(null)
+
+  useEffect(() => {
+    const handleLocationChange = () => {
+      setCurrentPath(window.location.pathname)
+      // If we navigate, close exhibition and modals
+      setExhibition(null)
+      setActiveModal(null)
+    }
+
+    window.addEventListener('popstate', handleLocationChange)
+    
+    // Custom navigation handler
+    const originalPushState = window.history.pushState
+    window.history.pushState = function() {
+      originalPushState.apply(this, arguments)
+      handleLocationChange()
+    }
+
+    return () => {
+      window.removeEventListener('popstate', handleLocationChange)
+      window.history.pushState = originalPushState
+    }
+  }, [])
+
+  const navigate = (path) => {
+    window.history.pushState({}, '', path)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
@@ -524,22 +397,7 @@ function App() {
   }
 
   const openProjectModal = (project) => {
-    const image =
-      typeof project.image === 'string' && project.image
-        ? project.image
-        : getSecureAssetUrl(project.assetId)
-
-    setActivePreviewImage(null)
-    setActiveShowcaseIndex(0)
-    setActiveModal({
-      type: 'project-detail',
-      title: project.title,
-      subtitle: project.year,
-      image,
-      description: project.summary,
-      tags: project.stack,
-      data: project // Pass full details
-    })
+    navigate(`/projects/${project.slug}`)
   }
 
   const openCertificateModal = (certificate) => {
@@ -708,11 +566,26 @@ function App() {
 
   const isDarkMode = theme === 'dark'
 
-  const fadeRefStack = useFadeIn(exhibition)
-  const fadeRefMain = useFadeIn(exhibition)
-  const fadeRefCerts = useFadeIn(exhibition)
-  const fadeRefMessage = useFadeIn(exhibition)
-  const fadeRefFooter = useFadeIn(exhibition)
+  const fadeRefStack = useFadeIn(exhibition, currentPath)
+  const fadeRefMain = useFadeIn(exhibition, currentPath)
+  const fadeRefCerts = useFadeIn(exhibition, currentPath)
+  const fadeRefMessage = useFadeIn(exhibition, currentPath)
+  const fadeRefFooter = useFadeIn(exhibition, currentPath)
+
+  const projectMatch = currentPath.match(/^\/projects\/([^/]+)$/)
+  const currentProject = projectMatch ? projects.find(p => p.slug === projectMatch[1]) : null
+
+  if (currentProject) {
+    return (
+      <ProjectPage 
+        project={currentProject} 
+        theme={theme} 
+        setTheme={setTheme} 
+        getSecureAssetUrl={getSecureAssetUrl}
+        onBack={() => navigate('/')}
+      />
+    )
+  }
 
   return (
     <main className="portfolio-page">

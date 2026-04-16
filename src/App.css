@@ -75,6 +75,8 @@ body {
   margin: 0 auto;
   display: grid;
   gap: 14px;
+  position: relative;
+  z-index: 1;
 }
 
 /* Plexus Background */
@@ -2267,6 +2269,8 @@ p {
   display: flex;
   flex-direction: column;
   gap: 40px;
+  position: relative;
+  z-index: 1;
 }
 
 .exhibition-view-experience {

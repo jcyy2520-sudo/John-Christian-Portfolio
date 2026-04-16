@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   FiCheckCircle,
+  FiDownload,
+  FiHome,
+  FiLayers,
+  FiBriefcase,
+  FiFolder,
+  FiAward,
+  FiMail,
   FiMessageCircle,
   FiMoon,
   FiSend,
@@ -21,9 +28,11 @@ import {
   SiReact,
 } from 'react-icons/si'
 import { FaFacebookF, FaInstagram, FaLinkedinIn } from 'react-icons/fa'
+import Markdown from 'react-markdown'
 import { sharedProjectData, projects as projectDataList } from './data/projectData'
 import './App.css'
 import ProjectPage from './components/ProjectPage'
+import PlexusBackground from './components/PlexusBackground'
 
 function useFadeIn(...triggers) {
   const ref = useRef(null)
@@ -118,41 +127,6 @@ const certificates = [
   },
 ]
 
-const contactItems = [
-  {
-    key: 'email',
-    icon: SiGmail,
-    value: 'christiannjc25@gmail.com',
-    mobileValue: 'christiannjc25@gmail.com',
-    color: '#ea4335',
-    darkColor: '#ff6b6b',
-  },
-  {
-    key: 'phone',
-    icon: MdCall,
-    value: '+63 966 9036 917',
-    mobileValue: '+63 966 9036 917',
-    color: '#34a853',
-    darkColor: '#51cf66',
-  },
-  {
-    key: 'github',
-    icon: SiGithub,
-    value: 'github.com/jcyy2520-sudo',
-    mobileValue: 'github.com/jcyy2520-sudo',
-    color: '#111827',
-    darkColor: '#f8f9fa',
-  },
-  {
-    key: 'location',
-    icon: MdLocationOn,
-    value: 'Poblacion, Bansud, Oriental Mindoro, Philippines',
-    mobileValue: 'Bansud, Oriental Mindoro',
-    color: '#4285f4',
-    darkColor: '#74c0fc',
-  },
-]
-
 function App() {
   const contactEmail = 'christiannjc25@gmail.com'
   const contactPhoneHref = 'tel:+639669036917'
@@ -238,6 +212,7 @@ function App() {
   const [hasOpenedChat, setHasOpenedChat] = useState(false)
   const [chatInput, setChatInput] = useState('')
   const [isChatSending, setIsChatSending] = useState(false)
+  const [isChatbotExpanded, setIsChatbotExpanded] = useState(true)
   const [visitorMessage, setVisitorMessage] = useState({
     email: '',
     message: '',
@@ -245,16 +220,16 @@ function App() {
   const [visitorMessageError, setVisitorMessageError] = useState('')
   const [isVisitorMessageSending, setIsVisitorMessageSending] = useState(false)
   const [isThankYouModalOpen, setIsThankYouModalOpen] = useState(false)
+  const [isCvModalOpen, setIsCvModalOpen] = useState(false)
   const [chatMessages, setChatMessages] = useState([
     {
       sender: 'bot',
-      text: 'Hello. I am your portfolio assistant. Ask me about projects, experience, education, certificates, or tech stack.',
+      text: 'Hey! I\'m JSI — your portfolio assistant. Got questions about my projects, skills, or experience? Ask away.',
     },
   ])
   const [secureAssetUrls, setSecureAssetUrls] = useState({})
-  const [expandedContact, setExpandedContact] = useState(null)
-  const [exhibition, setExhibition] = useState(null)
   const [activePreviewImage, setActivePreviewImage] = useState(null)
+  const [exhibition, setExhibition] = useState(null)
   const [currentPath, setCurrentPath] = useState(window.location.pathname)
   const chatMessagesEndRef = useRef(null)
 
@@ -301,6 +276,7 @@ function App() {
 
         setActiveModal(null)
         setIsThankYouModalOpen(false)
+        setIsCvModalOpen(false)
       }
     }
 
@@ -564,6 +540,17 @@ function App() {
     chatMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [chatMessages, isChatOpen])
 
+  useEffect(() => {
+    const handleScroll = () => {
+      if (isChatOpen) return
+      const atTop = window.scrollY < 100
+      setIsChatbotExpanded(atTop)
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [isChatOpen])
+
   const isDarkMode = theme === 'dark'
 
   const fadeRefStack = useFadeIn(exhibition, currentPath)
@@ -582,13 +569,18 @@ function App() {
         theme={theme} 
         setTheme={setTheme} 
         getSecureAssetUrl={getSecureAssetUrl}
-        onBack={() => navigate('/')}
+        onBack={() => {
+          setExhibition({ type: 'projects', title: 'All Projects' })
+          navigate('/')
+        }}
       />
     )
   }
 
   return (
-    <main className="portfolio-page">
+    <>
+      <PlexusBackground />
+      <main className="portfolio-page">
       {exhibition ? (
         <section className={`exhibition-view exhibition-view-${exhibition.type}`}>
           <header className="exhibition-header">
@@ -670,6 +662,31 @@ function App() {
         </section>
       ) : (
         <>
+          <nav className="side-nav" aria-label="Section navigation">
+            {[
+              { icon: FiHome, label: 'Home', target: '.hero-card' },
+              { icon: FiLayers, label: 'Tech Stack', target: '.stack-grid' },
+              { icon: FiBriefcase, label: 'Experience', action: openExperienceListExhibition },
+              { icon: FiFolder, label: 'Projects', action: openProjectsListExhibition },
+              { icon: FiAward, label: 'Certificates', action: openCertificatesListExhibition },
+              { icon: FiMail, label: 'Contact', target: '.visitor-message-panel' },
+            ].map((item) => {
+              const Icon = item.icon
+              return (
+                <button
+                  key={item.label}
+                  type="button"
+                  className="side-nav-item"
+                  onClick={() => item.action ? item.action() : document.querySelector(item.target)?.scrollIntoView({ behavior: 'smooth' })}
+                  aria-label={item.label}
+                >
+                  <Icon className="side-nav-icon" />
+                  <span className="side-nav-label">{item.label}</span>
+                </button>
+              )
+            })}
+          </nav>
+
           <header className="hero-card panel">
             <button
               type="button"
@@ -683,7 +700,9 @@ function App() {
             </button>
             <div className="hero-grid">
               <div className="profile-slot">
-                <img src={getSecureAssetUrl(PROFILE_ASSET_ID)} alt="Profile" />
+                {secureAssetUrls[PROFILE_ASSET_ID] ? (
+                  <img src={secureAssetUrls[PROFILE_ASSET_ID]} alt="Profile" />
+                ) : null}
               </div>
               <div className="hero-copy">
                 <h1>John Christian D. Fajutagana</h1>
@@ -697,24 +716,23 @@ function App() {
                   digital solutions that perform well, scale with real user needs,
                   and are built to last.
                 </p>
-                <div className="hero-contact-grid" aria-label="Contact details">
-                  {contactItems.map((item) => {
-                    const Icon = item.icon
-                    const isExpanded = expandedContact === item.key
-                    return (
-                      <button
-                        key={item.key}
-                        type="button"
-                        className={`hero-contact-item ${isExpanded ? 'expanded' : ''}`}
-                        onClick={() => setExpandedContact(isExpanded ? null : item.key)}
-                        aria-expanded={isExpanded}
-                        aria-label={`Show ${item.key} info`}
-                      >
-                        <Icon className="hero-contact-icon" style={{ color: isDarkMode ? item.darkColor || item.color : item.color }} />
-                        <span className="hero-contact-text">{item.value}</span>
-                      </button>
-                    )
-                  })}
+                <div className="hero-cta-group">
+                  <button
+                    type="button"
+                    className="hero-cta hero-cta-primary"
+                    onClick={() => setIsCvModalOpen(true)}
+                  >
+                    <FiDownload /> Download CV
+                  </button>
+                  <button
+                    type="button"
+                    className="hero-cta hero-cta-secondary"
+                    onClick={() => {
+                      document.querySelector('.visitor-message-panel')?.scrollIntoView({ behavior: 'smooth' })
+                    }}
+                  >
+                    <FiSend /> Contact Me
+                  </button>
                 </div>
               </div>
             </div>
@@ -1033,6 +1051,48 @@ function App() {
         </div>
       ) : null}
 
+      {isCvModalOpen ? (
+        <div
+          className="modal-overlay"
+          role="presentation"
+          onClick={() => setIsCvModalOpen(false)}
+        >
+          <section
+            className="modal-card thank-you-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cv-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="modal-close"
+              aria-label="Close CV modal"
+              onClick={() => setIsCvModalOpen(false)}
+            >
+              <FiX />
+            </button>
+            <div className="modal-content">
+              <div className="thank-you-badge" aria-hidden="true">
+                <FiDownload />
+              </div>
+              <p className="modal-type">CV Download</p>
+              <h3 id="cv-title">CV is not available yet.</h3>
+              <p>
+                The downloadable CV is currently being prepared. Please check back soon or reach out through the contact form below.
+              </p>
+              <button
+                type="button"
+                className="action-button thank-you-close"
+                onClick={() => setIsCvModalOpen(false)}
+              >
+                Got it
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+
       {activeModal ? (
         <div
           className="modal-overlay"
@@ -1338,10 +1398,6 @@ function App() {
       ) : null}
 
       <div className="chatbot-shell">
-        {!isChatOpen && !hasOpenedChat ? (
-          <p className="chatbot-invite">Need a quick overview?</p>
-        ) : null}
-
         {isChatOpen ? (
           <section className="chatbot-panel" aria-label="JSI chatbot">
             <div className="chatbot-header">
@@ -1365,7 +1421,11 @@ function App() {
                   key={`${message.sender}-${index}`}
                   className={`chat-message ${message.sender}`}
                 >
-                  <p>{message.text}</p>
+                  {message.sender === 'bot' ? (
+                    <Markdown>{message.text}</Markdown>
+                  ) : (
+                    <p>{message.text}</p>
+                  )}
                 </article>
               ))}
               <div ref={chatMessagesEndRef}></div>
@@ -1401,18 +1461,22 @@ function App() {
         ) : (
           <button
             type="button"
-            className="chatbot-toggle"
+            className={`chatbot-toggle ${isChatbotExpanded ? 'chatbot-toggle-expanded' : ''}`}
             onClick={() => {
               setHasOpenedChat(true)
               setIsChatOpen(true)
             }}
             aria-label="Open chatbot"
           >
+            {isChatbotExpanded && (
+              <span className="chatbot-toggle-label">Ask me anything</span>
+            )}
             <FiMessageCircle />
           </button>
         )}
       </div>
     </main>
+    </>
   )
 }
 

@@ -3,6 +3,7 @@ import {
   buildSignedAssetUrl,
   getSecureAssetConfig,
   isOriginAllowed,
+  getAllowedOrigin,
 } from '../lib/secureAssets.js'
 
 const GENERIC_ERROR = 'Unable to prepare secure asset access.'
@@ -74,12 +75,28 @@ function toArray(value) {
   return value
 }
 
+function setCorsHeaders(req, res) {
+  const origin = getAllowedOrigin(req)
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin)
+    res.setHeader('Vary', 'Origin')
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  res.setHeader('Access-Control-Max-Age', '86400')
+}
+
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store, max-age=0')
   res.setHeader('X-Content-Type-Options', 'nosniff')
+  setCorsHeaders(req, res)
+
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end()
+  }
 
   if (req.method !== 'POST') {
-    res.setHeader('Allow', 'POST')
+    res.setHeader('Allow', 'POST, OPTIONS')
     return res.status(405).json({ error: 'Method not allowed' })
   }
 

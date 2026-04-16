@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
-import { FiArrowLeft, FiGithub, FiExternalLink, FiChevronUp, FiSun, FiMoon, FiX, FiChevronLeft, FiChevronRight } from 'react-icons/fi'
+import { FiArrowLeft, FiGithub, FiExternalLink, FiChevronUp, FiChevronDown, FiSun, FiMoon, FiX, FiChevronLeft, FiChevronRight } from 'react-icons/fi'
 import './ProjectPage.css'
 
 const ProjectPage = ({ project, theme, setTheme, getSecureAssetUrl, onBack }) => {
   const [scrollProgress, setScrollProgress] = useState(0)
   const [activeTab, setActiveTab] = useState(Object.keys(project.systemUI)[0])
   const [activeSection, setActiveSection] = useState('overview')
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 860)
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 1200)
   const [isSystemUIExpanded, setIsSystemUIExpanded] = useState(false)
   const [selectedImageIndex, setSelectedImageIndex] = useState(null)
 
@@ -38,7 +38,7 @@ const ProjectPage = ({ project, theme, setTheme, getSecureAssetUrl, onBack }) =>
       }
     }
 
-    const handleResize = () => setIsMobile(window.innerWidth <= 860)
+    const handleResize = () => setIsMobile(window.innerWidth <= 1200)
 
     window.addEventListener('scroll', handleScroll)
     window.addEventListener('resize', handleResize)
@@ -71,7 +71,7 @@ const ProjectPage = ({ project, theme, setTheme, getSecureAssetUrl, onBack }) =>
       <header className="project-clean-header">
         <div className="header-inner">
           <button className="back-link-simple" onClick={onBack}>
-            <FiArrowLeft /> Back to Home
+            <FiArrowLeft /> Back to Projects
           </button>
           <div className="title-row">
             <h1>{project.title}</h1>
@@ -106,51 +106,88 @@ const ProjectPage = ({ project, theme, setTheme, getSecureAssetUrl, onBack }) =>
         </div>
       </header>
 
+      {/* Mobile Tab Nav */}
+      {isMobile && (
+        <div className="project-mobile-tabs">
+          {['overview', 'objectives', 'features', 'systemUI', 'techStack', 'developers'].map(id => (
+            <button
+              key={id}
+              type="button"
+              className={`project-mobile-tab ${activeSection === id ? 'active' : ''}`}
+              onClick={() => scrollToSection(id)}
+            >
+              {id === 'systemUI' ? 'System UI' : id === 'techStack' ? 'Tech Stack' : id.charAt(0).toUpperCase() + id.slice(1)}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Main Layout */}
       <div className="project-layout-container">
-        {/* Sticky Sidebar */}
-        <aside className={`project-sidebar ${isMobile ? 'mobile-tabs' : ''}`}>
-          <div className="sidebar-sticky-content">
-            <ul className="sidebar-nav">
-              <li className={activeSection === 'overview' ? 'active' : ''} onClick={() => scrollToSection('overview')}>Overview</li>
-              <li className={activeSection === 'objectives' ? 'active' : ''} onClick={() => scrollToSection('objectives')}>Objectives</li>
-              <li className={activeSection === 'features' ? 'active' : ''} onClick={() => scrollToSection('features')}>Features</li>
-              
-              <li className={`sidebar-parent ${isSystemUIExpanded ? 'expanded' : ''}`}>
-                <div 
-                  className={`sidebar-parent-header ${(activeSection === 'systemUI') ? 'active' : ''}`}
-                  onClick={() => {
-                    if (activeSection !== 'systemUI') scrollToSection('systemUI');
-                    setIsSystemUIExpanded(!isSystemUIExpanded);
-                  }}
-                >
-                  SYSTEM UI
-                  <FiChevronUp className={`dropdown-icon ${isSystemUIExpanded ? 'rotated' : ''}`} />
-                </div>
-                <ul className={`sidebar-sub-nav ${isSystemUIExpanded ? 'show' : 'hide'}`}>
+        {/* Sidebar Nav */}
+        {!isMobile && (
+          <nav className="project-side-nav" aria-label="Section navigation">
+            {[
+              { id: 'overview', label: 'Overview' },
+              { id: 'objectives', label: 'Objectives' },
+              { id: 'features', label: 'Features' },
+            ].map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                className={`project-side-nav-item ${activeSection === item.id ? 'active' : ''}`}
+                onClick={() => scrollToSection(item.id)}
+              >
+                {item.label}
+              </button>
+            ))}
+
+            <div className="project-side-nav-parent">
+              <button
+                type="button"
+                className={`project-side-nav-item ${activeSection === 'systemUI' ? 'active' : ''}`}
+                onClick={() => {
+                  if (activeSection !== 'systemUI') scrollToSection('systemUI')
+                  setIsSystemUIExpanded(!isSystemUIExpanded)
+                }}
+              >
+                System UI
+                <FiChevronDown className={`project-side-nav-chevron ${isSystemUIExpanded ? 'rotated' : ''}`} />
+              </button>
+              {isSystemUIExpanded && (
+                <div className="project-side-nav-sub">
                   {Object.keys(project.systemUI).map(tab => (
-                    <li 
-                      key={tab} 
-                      className={activeSection === 'systemUI' && activeTab === tab ? 'active' : ''}
-                      onClick={(e) => { 
-                        e.stopPropagation();
-                        scrollToSection('systemUI'); 
-                        setActiveTab(tab); 
-                      }}
+                    <button
+                      key={tab}
+                      type="button"
+                      className={`project-side-nav-sub-item ${activeSection === 'systemUI' && activeTab === tab ? 'active' : ''}`}
+                      onClick={() => { scrollToSection('systemUI'); setActiveTab(tab); }}
                     >
-                      <span className="dot"></span> {tab}
-                    </li>
+                      <span className="sub-dot"></span>
+                      {tab}
+                    </button>
                   ))}
-                </ul>
-              </li>
+                </div>
+              )}
+            </div>
 
-              <li className={activeSection === 'techStack' ? 'active' : ''} onClick={() => scrollToSection('techStack')}>Tech Stack</li>
-              <li className={activeSection === 'developers' ? 'active' : ''} onClick={() => scrollToSection('developers')}>Developers</li>
-            </ul>
-          </div>
-        </aside>
+            {[
+              { id: 'techStack', label: 'Tech Stack' },
+              { id: 'developers', label: 'Developers' },
+            ].map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                className={`project-side-nav-item ${activeSection === item.id ? 'active' : ''}`}
+                onClick={() => scrollToSection(item.id)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </nav>
+        )}
 
-        {/* Right Content */}
+        {/* Main Content */}
         <main className="project-main-content">
           {/* Overview Section */}
           <section id="overview" ref={sectionRefs.overview} className="content-section">

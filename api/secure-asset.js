@@ -5,6 +5,7 @@ import {
   getSecureAssetConfig,
   isOriginAllowed,
   isValidSignedAssetRequest,
+  getAllowedOrigin,
 } from '../lib/secureAssets.js'
 
 const GENERIC_ERROR = 'Unable to retrieve asset.'
@@ -35,8 +36,20 @@ export default async function handler(req, res) {
   res.setHeader('X-Content-Type-Options', 'nosniff')
   res.setHeader('Cross-Origin-Resource-Policy', 'same-origin')
 
+  const origin = getAllowedOrigin(req)
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin)
+    res.setHeader('Vary', 'Origin')
+  }
+
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS')
+    res.setHeader('Access-Control-Max-Age', '86400')
+    return res.status(204).end()
+  }
+
   if (req.method !== 'GET' && req.method !== 'HEAD') {
-    res.setHeader('Allow', 'GET, HEAD')
+    res.setHeader('Allow', 'GET, HEAD, OPTIONS')
     return res.status(405).json({ error: 'Method not allowed' })
   }
 

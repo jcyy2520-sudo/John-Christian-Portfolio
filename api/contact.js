@@ -1,5 +1,7 @@
 import nodemailer from 'nodemailer'
+import { resolveMx } from 'node:dns/promises'
 
+const GEMINI_MODEL = 'gemini-2.5-flash'
 const GENERIC_CONTACT_ERROR =
   'The contact service is temporarily unavailable. Please try again shortly.'
 
@@ -10,6 +12,14 @@ const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000
 const RATE_LIMIT_MAX_REQUESTS = 6
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+const DISPOSABLE_DOMAINS = new Set([
+  'mailinator.com', 'guerrillamail.com', 'tempmail.com', 'throwaway.email',
+  'yopmail.com', 'sharklasers.com', 'guerrillamailblock.com', 'grr.la',
+  'dispostable.com', 'mailnesia.com', 'maildrop.cc', 'trashmail.com',
+  'tempail.com', 'fakeinbox.com', 'getnada.com', 'temp-mail.org',
+  'mohmal.com', 'burnermail.io', 'minutemail.com',
+])
 
 const rateLimitStore = new Map()
 let smtpTransporter
@@ -120,7 +130,7 @@ function isOriginAllowed(req) {
   }
 
   if (!configuredOrigins) {
-    return true
+    return process.env.NODE_ENV !== 'production'
   }
 
   const allowList = configuredOrigins
@@ -147,6 +157,104 @@ function parseJsonBody(req) {
   }
 
   return { body }
+}
+
+async function verifyEmailDomain(email) {
+  const domain = email.split('@')[1]?.toLowerCase()
+
+  if (!domain) {
+    return { valid: false, reason: 'Invalid email format.' }
+  }
+
+  if (DISPOSABLE_DOMAINS.has(domain)) {
+    return { valid: false, reason: 'Please use a permanent email address, not a disposable one.' }
+  }
+
+  try {
+    const records = await resolveMx(domain)
+    if (!records || records.length === 0) {
+      return { valid: false, reason: 'This email domain does not appear to accept mail. Please check your email address.' }
+    }
+    return { valid: true }
+  } catch {
+    return { valid: false, reason: 'This email domain could not be verified. Please check your email address.' }
+  }
+}
+
+async function moderateMessage(message) {
+  const apiKey = process.env.GEMINI_API_KEY
+
+  if (!apiKey) {
+    return { safe: true }
+  }
+
+  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`
+
+  const payload = {
+    system_instruction: {
+      parts: [{
+        text: `You are a content moderation system for a professional portfolio contact form. Evaluate the message and respond with ONLY a JSON object, nothing else.
+
+Rules:
+- Flag messages that are clearly toxic, hateful, threatening, sexually explicit, or harassing.
+- Flag messages that are obvious spam (ads, phishing, scam links, gibberish).
+- Do NOT flag messages that are simply short, casual, or informal. People can say "hi", ask simple questions, or be brief.
+- Do NOT flag constructive criticism, negative feedback about work, or blunt but non-abusive language.
+- Be lenient. Only flag genuinely harmful or spam content.
+
+Respond with exactly this JSON format:
+{"safe": true} or {"safe": false, "reason": "brief explanation"}`
+      }]
+    },
+    contents: [{
+      role: 'user',
+      parts: [{ text: message }]
+    }],
+    generationConfig: {
+      temperature: 0.1,
+      maxOutputTokens: 100,
+    },
+  }
+
+  try {
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey,
+      },
+      body: JSON.stringify(payload),
+    })
+
+    if (!response.ok) {
+      return { safe: true }
+    }
+
+    const data = await response.json().catch(() => null)
+    const rawText = data?.candidates?.[0]?.content?.parts
+      ?.map((p) => (typeof p?.text === 'string' ? p.text : ''))
+      .join('')
+      .trim()
+
+    if (!rawText) {
+      return { safe: true }
+    }
+
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) {
+      return { safe: true }
+    }
+
+    const result = JSON.parse(jsonMatch[0])
+
+    if (typeof result.safe === 'boolean') {
+      return result
+    }
+
+    return { safe: true }
+  } catch {
+    return { safe: true }
+  }
 }
 
 function getSmtpCredentials() {
@@ -183,12 +291,47 @@ function getTransporter(user, pass) {
   return smtpTransporter
 }
 
+function getAllowedOrigin(req) {
+  const requestOrigin = normalizeOrigin(req.headers.origin)
+  if (!requestOrigin) return null
+
+  const configuredOrigins = process.env.ALLOWED_ORIGIN
+
+  if (process.env.NODE_ENV !== 'production' &&
+    /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(requestOrigin)) {
+    return requestOrigin
+  }
+
+  if (configuredOrigins) {
+    const allowList = configuredOrigins.split(',').map(normalizeOrigin).filter(Boolean)
+    if (allowList.includes(requestOrigin)) return requestOrigin
+  }
+
+  return null
+}
+
+function setCorsHeaders(req, res) {
+  const origin = getAllowedOrigin(req)
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin)
+    res.setHeader('Vary', 'Origin')
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  res.setHeader('Access-Control-Max-Age', '86400')
+}
+
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store, max-age=0')
   res.setHeader('X-Content-Type-Options', 'nosniff')
+  setCorsHeaders(req, res)
+
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end()
+  }
 
   if (req.method !== 'POST') {
-    res.setHeader('Allow', 'POST')
+    res.setHeader('Allow', 'POST, OPTIONS')
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
@@ -246,8 +389,26 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Email and message are required.' })
   }
 
+  if (/[\r\n]/.test(email)) {
+    return res.status(400).json({ error: 'Please provide a valid email address.' })
+  }
+
   if (!EMAIL_PATTERN.test(email)) {
     return res.status(400).json({ error: 'Please provide a valid email address.' })
+  }
+
+  const emailVerification = await verifyEmailDomain(email)
+
+  if (!emailVerification.valid) {
+    return res.status(400).json({ error: emailVerification.reason })
+  }
+
+  const moderation = await moderateMessage(message)
+
+  if (!moderation.safe) {
+    return res.status(400).json({
+      error: 'Your message was flagged as inappropriate. Please revise and try again.',
+    })
   }
 
   const subject = `Portfolio message from ${email}`

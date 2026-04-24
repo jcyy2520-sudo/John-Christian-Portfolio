@@ -114,12 +114,12 @@ export const sharedProjectData = {
 
 export const projects = [
   {
-    slug: 'role-based-auth',
-    title: 'Role-Based Authentication System',
+    slug: 'student-information-management-system',
+    title: 'Student Information Management System',
     year: '2025',
     assetId: 'project-1',
-    summary: 'Built a secure, role-based authentication platform with tailored workflows for admin, cashier, client, and guest users.',
-    stack: ['Laravel', 'React', 'MySQL'],
+    summary: 'Built a full-stack student portal for enrollment, grading, dashboard analytics, and secure authentication.',
+    stack: ['Laravel', 'Blade', 'MySQL'],
     ...sharedProjectData,
   },
   {

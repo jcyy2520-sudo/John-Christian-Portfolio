@@ -29,7 +29,8 @@ import {
 } from 'react-icons/si'
 import { FaFacebookF, FaInstagram, FaLinkedinIn } from 'react-icons/fa'
 import Markdown from 'react-markdown'
-import { sharedProjectData, projects as projectDataList } from './data/projectData'
+import { projects as projectDataList } from './data/projectData'
+import { portfolioExperiences, portfolioProfile } from './data/portfolioProfile'
 import './App.css'
 import ProjectPage from './components/ProjectPage'
 import PlexusBackground from './components/PlexusBackground'
@@ -82,32 +83,7 @@ const techStack = [
 
 const projects = projectDataList
 
-const experiences = [
-  {
-    role: 'Freelance Full Stack Developer',
-    period: '2025 - Present',
-    detail:
-      'Building web systems with Laravel and React, with a focus on clean architecture and scalable database design.',
-  },
-  {
-    role: 'Web Development Practicum',
-    period: '2024 - 2025',
-    detail:
-      'Developed CRUD applications, authentication flows, and reusable UI components for class and internship requirements.',
-  },
-  {
-    role: 'Campus Project Contributor',
-    period: '2024',
-    detail:
-      'Collaborated on school projects by implementing backend APIs, integrating frontend pages, and testing user flows.',
-  },
-  {
-    role: 'Self-Directed Full Stack Training',
-    period: '2023 - 2024',
-    detail:
-      'Focused on Python, PHP, SQL, and modern JavaScript while building personal systems to practice real-world problem solving.',
-  },
-]
+const experiences = portfolioExperiences
 
 const certificates = [
   {
@@ -128,10 +104,9 @@ const certificates = [
 ]
 
 function App() {
-  const contactEmail = 'christiannjc25@gmail.com'
-  const contactPhoneHref = 'tel:+639669036917'
-  const mapsHref =
-    'https://www.google.com/maps/search/?api=1&query=Poblacion%2C+Bansud%2C+Oriental+Mindoro%2C+Philippines'
+  const contactEmail = portfolioProfile.contact.email
+  const contactPhoneHref = portfolioProfile.contact.phoneHref
+  const mapsHref = portfolioProfile.contact.mapsHref
 
   const contactRailItems = [
     {
@@ -146,7 +121,7 @@ function App() {
     {
       key: 'phone',
       title: 'CONTACT US',
-      lines: ['+63 966 9036 917'],
+      lines: [portfolioProfile.contact.phoneDisplay],
       href: contactPhoneHref,
       icon: MdCall,
       external: false,
@@ -155,7 +130,7 @@ function App() {
     {
       key: 'location',
       title: 'LOCATION',
-      lines: ['Poblacion, Bansud', 'Oriental Mindoro, Philippines'],
+      lines: portfolioProfile.locationLines,
       href: mapsHref,
       icon: MdLocationOn,
       external: true,
@@ -209,7 +184,6 @@ function App() {
   const [activeModal, setActiveModal] = useState(null)
   const [activeShowcaseIndex, setActiveShowcaseIndex] = useState(0)
   const [isChatOpen, setIsChatOpen] = useState(false)
-  const [hasOpenedChat, setHasOpenedChat] = useState(false)
   const [chatInput, setChatInput] = useState('')
   const [isChatSending, setIsChatSending] = useState(false)
   const [isChatbotExpanded, setIsChatbotExpanded] = useState(true)
@@ -1463,7 +1437,6 @@ function App() {
             type="button"
             className={`chatbot-toggle ${isChatbotExpanded ? 'chatbot-toggle-expanded' : ''}`}
             onClick={() => {
-              setHasOpenedChat(true)
               setIsChatOpen(true)
             }}
             aria-label="Open chatbot"

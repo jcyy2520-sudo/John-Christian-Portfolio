@@ -1,12 +1,16 @@
 import fs from 'node:fs/promises'
-import path from 'node:path'
 import {
   getSecureAssetAbsolutePath,
   getSecureAssetConfig,
-  isOriginAllowed,
+  getSecureAssetRequestBinding,
   isValidSignedAssetRequest,
-  getAllowedOrigin,
 } from '../lib/secureAssets.js'
+import {
+  isOriginAllowed,
+  isTrustedFetchSite,
+  setCorsHeaders,
+  setDefaultApiHeaders,
+} from '../lib/requestSecurity.js'
 
 const GENERIC_ERROR = 'Unable to retrieve asset.'
 
@@ -18,33 +22,12 @@ function firstQueryValue(value) {
   return typeof value === 'string' ? value : ''
 }
 
-function isRequestContextAllowed(req) {
-  const fetchSite = req.headers['sec-fetch-site']
-
-  if (!fetchSite || typeof fetchSite !== 'string') {
-    return true
-  }
-
-  return (
-    fetchSite === 'same-origin' ||
-    fetchSite === 'same-site' ||
-    fetchSite === 'none'
-  )
-}
-
 export default async function handler(req, res) {
-  res.setHeader('X-Content-Type-Options', 'nosniff')
+  setDefaultApiHeaders(res, { cacheControl: 'private, max-age=60, must-revalidate' })
   res.setHeader('Cross-Origin-Resource-Policy', 'same-origin')
-
-  const origin = getAllowedOrigin(req)
-  if (origin) {
-    res.setHeader('Access-Control-Allow-Origin', origin)
-    res.setHeader('Vary', 'Origin')
-  }
+  setCorsHeaders(req, res, { methods: 'GET, HEAD, OPTIONS', allowPrivateNetworkInDev: true })
 
   if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS')
-    res.setHeader('Access-Control-Max-Age', '86400')
     return res.status(204).end()
   }
 
@@ -53,7 +36,10 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  if (!isOriginAllowed(req) || !isRequestContextAllowed(req)) {
+  if (
+    !isOriginAllowed(req, { allowPrivateNetworkInDev: true }) ||
+    !isTrustedFetchSite(req)
+  ) {
     return res.status(403).json({ error: 'Forbidden' })
   }
 
@@ -75,6 +61,7 @@ export default async function handler(req, res) {
       expires,
       token,
       secret: process.env.ASSET_SIGNING_SECRET,
+      requestBinding: getSecureAssetRequestBinding(req),
     })
   ) {
     return res.status(403).json({ error: 'Forbidden' })
@@ -91,11 +78,7 @@ export default async function handler(req, res) {
     const fileBuffer = await fs.readFile(absolutePath)
 
     res.setHeader('Content-Type', assetConfig.contentType)
-    res.setHeader(
-      'Content-Disposition',
-      `inline; filename="${path.basename(assetConfig.relativePath)}"`,
-    )
-    res.setHeader('Cache-Control', 'private, max-age=300, must-revalidate')
+    res.setHeader('Content-Disposition', 'inline')
 
     if (req.method === 'HEAD') {
       return res.status(200).end()

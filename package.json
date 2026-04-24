@@ -11,6 +11,7 @@
     "dev:vercel": "npx vercel dev",
     "build": "vite build",
     "lint": "eslint .",
+    "test:chat": "node scripts/chat-smoke-test.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

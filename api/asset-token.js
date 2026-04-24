@@ -2,30 +2,24 @@ import {
   ASSET_URL_TTL_MS,
   buildSignedAssetUrl,
   getSecureAssetConfig,
-  isOriginAllowed,
-  getAllowedOrigin,
+  getSecureAssetRequestBinding,
 } from '../lib/secureAssets.js'
+import {
+  getClientIdentifier,
+  isBodyWithinLimit,
+  isOriginAllowed,
+  isTrustedFetchSite,
+  setCorsHeaders,
+  setDefaultApiHeaders,
+} from '../lib/requestSecurity.js'
 
 const GENERIC_ERROR = 'Unable to prepare secure asset access.'
 const MAX_ASSET_IDS_PER_REQUEST = 12
+const MAX_REQUEST_BYTES = 4 * 1024
 const RATE_LIMIT_WINDOW_MS = 60 * 1000
 const RATE_LIMIT_MAX_REQUESTS = 40
 
 const tokenRateLimitStore = new Map()
-
-function getClientIdentifier(req) {
-  const forwardedFor = req.headers['x-forwarded-for']
-
-  if (typeof forwardedFor === 'string' && forwardedFor.trim()) {
-    return forwardedFor.split(',')[0].trim()
-  }
-
-  if (Array.isArray(forwardedFor) && forwardedFor.length) {
-    return String(forwardedFor[0]).split(',')[0].trim()
-  }
-
-  return req.socket?.remoteAddress || 'unknown-client'
-}
 
 function cleanupRateLimitStore(now) {
   if (tokenRateLimitStore.size < 500) {
@@ -74,21 +68,8 @@ function toArray(value) {
 
   return value
 }
-
-function setCorsHeaders(req, res) {
-  const origin = getAllowedOrigin(req)
-  if (origin) {
-    res.setHeader('Access-Control-Allow-Origin', origin)
-    res.setHeader('Vary', 'Origin')
-  }
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
-  res.setHeader('Access-Control-Max-Age', '86400')
-}
-
 export default async function handler(req, res) {
-  res.setHeader('Cache-Control', 'no-store, max-age=0')
-  res.setHeader('X-Content-Type-Options', 'nosniff')
+  setDefaultApiHeaders(res)
   setCorsHeaders(req, res)
 
   if (req.method === 'OPTIONS') {
@@ -100,7 +81,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  if (!isOriginAllowed(req)) {
+  if (!isOriginAllowed(req) || !isTrustedFetchSite(req)) {
     return res.status(403).json({ error: 'Forbidden' })
   }
 
@@ -108,6 +89,10 @@ export default async function handler(req, res) {
 
   if (typeof contentType === 'string' && !contentType.includes('application/json')) {
     return res.status(415).json({ error: 'Unsupported media type' })
+  }
+
+  if (!isBodyWithinLimit(req, MAX_REQUEST_BYTES)) {
+    return res.status(413).json({ error: 'Payload too large' })
   }
 
   const clientId = getClientIdentifier(req)
@@ -174,6 +159,7 @@ export default async function handler(req, res) {
       assetId,
       process.env.ASSET_SIGNING_SECRET,
       ASSET_URL_TTL_MS,
+      getSecureAssetRequestBinding(req),
     )
 
     if (signed) {

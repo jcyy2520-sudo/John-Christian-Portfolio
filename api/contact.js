@@ -1,5 +1,13 @@
 import nodemailer from 'nodemailer'
 import { resolveMx } from 'node:dns/promises'
+import {
+  getClientIdentifier,
+  isBodyWithinLimit,
+  isOriginAllowed,
+  isTrustedFetchSite,
+  setCorsHeaders,
+  setDefaultApiHeaders,
+} from '../lib/requestSecurity.js'
 
 const GEMINI_MODEL = 'gemini-2.5-flash'
 const GENERIC_CONTACT_ERROR =
@@ -7,6 +15,7 @@ const GENERIC_CONTACT_ERROR =
 
 const MAX_EMAIL_LENGTH = 254
 const MAX_MESSAGE_LENGTH = 2000
+const MAX_REQUEST_BYTES = 8 * 1024
 
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000
 const RATE_LIMIT_MAX_REQUESTS = 6
@@ -39,20 +48,6 @@ function sanitizeText(input, maxLength) {
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, maxLength)
-}
-
-function getClientIdentifier(req) {
-  const forwardedFor = req.headers['x-forwarded-for']
-
-  if (typeof forwardedFor === 'string' && forwardedFor.trim()) {
-    return forwardedFor.split(',')[0].trim()
-  }
-
-  if (Array.isArray(forwardedFor) && forwardedFor.length) {
-    return String(forwardedFor[0]).split(',')[0].trim()
-  }
-
-  return req.socket?.remoteAddress || 'unknown-client'
 }
 
 function cleanupRateLimitStore(now) {
@@ -93,52 +88,6 @@ function consumeRateLimit(clientId) {
     remaining: Math.max(0, RATE_LIMIT_MAX_REQUESTS - currentEntry.count),
     resetAt: currentEntry.resetAt,
   }
-}
-
-function normalizeOrigin(origin) {
-  if (typeof origin !== 'string') {
-    return ''
-  }
-
-  const trimmedOrigin = origin.trim()
-
-  if (!trimmedOrigin) {
-    return ''
-  }
-
-  try {
-    const parsedUrl = new URL(trimmedOrigin)
-    return `${parsedUrl.protocol}//${parsedUrl.host}`.toLowerCase()
-  } catch {
-    return trimmedOrigin.replace(/\/+$/, '').toLowerCase()
-  }
-}
-
-function isOriginAllowed(req) {
-  const configuredOrigins = process.env.ALLOWED_ORIGIN
-  const requestOrigin = normalizeOrigin(req.headers.origin)
-
-  if (!requestOrigin) {
-    return true
-  }
-
-  if (
-    process.env.NODE_ENV !== 'production' &&
-    /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(requestOrigin)
-  ) {
-    return true
-  }
-
-  if (!configuredOrigins) {
-    return process.env.NODE_ENV !== 'production'
-  }
-
-  const allowList = configuredOrigins
-    .split(',')
-    .map((origin) => normalizeOrigin(origin))
-    .filter(Boolean)
-
-  return allowList.includes(requestOrigin)
 }
 
 function parseJsonBody(req) {
@@ -291,39 +240,8 @@ function getTransporter(user, pass) {
   return smtpTransporter
 }
 
-function getAllowedOrigin(req) {
-  const requestOrigin = normalizeOrigin(req.headers.origin)
-  if (!requestOrigin) return null
-
-  const configuredOrigins = process.env.ALLOWED_ORIGIN
-
-  if (process.env.NODE_ENV !== 'production' &&
-    /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(requestOrigin)) {
-    return requestOrigin
-  }
-
-  if (configuredOrigins) {
-    const allowList = configuredOrigins.split(',').map(normalizeOrigin).filter(Boolean)
-    if (allowList.includes(requestOrigin)) return requestOrigin
-  }
-
-  return null
-}
-
-function setCorsHeaders(req, res) {
-  const origin = getAllowedOrigin(req)
-  if (origin) {
-    res.setHeader('Access-Control-Allow-Origin', origin)
-    res.setHeader('Vary', 'Origin')
-  }
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
-  res.setHeader('Access-Control-Max-Age', '86400')
-}
-
 export default async function handler(req, res) {
-  res.setHeader('Cache-Control', 'no-store, max-age=0')
-  res.setHeader('X-Content-Type-Options', 'nosniff')
+  setDefaultApiHeaders(res)
   setCorsHeaders(req, res)
 
   if (req.method === 'OPTIONS') {
@@ -335,7 +253,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  if (!isOriginAllowed(req)) {
+  if (!isOriginAllowed(req) || !isTrustedFetchSite(req)) {
     return res.status(403).json({ error: 'Forbidden' })
   }
 
@@ -343,6 +261,10 @@ export default async function handler(req, res) {
 
   if (typeof contentType === 'string' && !contentType.includes('application/json')) {
     return res.status(415).json({ error: 'Unsupported media type' })
+  }
+
+  if (!isBodyWithinLimit(req, MAX_REQUEST_BYTES)) {
+    return res.status(413).json({ error: 'Payload too large' })
   }
 
   const clientId = getClientIdentifier(req)

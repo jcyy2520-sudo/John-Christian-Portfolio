@@ -1,6 +1,6 @@
 # JSI Portfolio
 
-Personal portfolio built with React + Vite, including a Gemini-powered chatbot that is scoped to portfolio-related questions.
+Personal portfolio built with React + Vite, including a portfolio chatbot that can adapt to mixed language, messy input, and route requests between Groq and Gemini on the backend.
 
 ## Setup
 
@@ -12,16 +12,21 @@ npm install
 
 2. Create local environment file by copying `.env.example` to `.env.local`.
 
-3. Set your API key in `.env.local`:
+3. Set your API keys in `.env.local`:
 
 ```bash
 GEMINI_API_KEY=your_gemini_api_key_here
+GROQ_API_KEY=your_groq_api_key_here
+GEMINI_MODEL=gemini-2.5-flash
+GROQ_MODEL=llama-3.3-70b-versatile
 ALLOWED_ORIGIN=http://localhost:5173,http://localhost:3000
 ASSET_SIGNING_SECRET=replace_with_a_long_random_secret
 GMAIL_SMTP_USER=yourgmail@gmail.com
 GMAIL_SMTP_APP_PASSWORD=your_gmail_app_password
 CONTACT_TO_EMAIL=your_inbox@example.com
 ```
+
+`GROQ_API_KEY` is recommended so the chat route can choose between both providers. If only one provider key is present, the backend falls back to the available provider automatically. `GEMINI_MODEL` and `GROQ_MODEL` are optional overrides if you change providers or model versions.
 
 4. Run development server:
 
@@ -52,6 +57,9 @@ npm run dev:vercel
 Add this environment variable in Vercel Dashboard:
 
 - `GEMINI_API_KEY`
+- `GROQ_API_KEY`
+- `GEMINI_MODEL` (optional)
+- `GROQ_MODEL` (optional)
 - `ALLOWED_ORIGIN` (your production origin, e.g. `https://your-domain.vercel.app`)
 - `ASSET_SIGNING_SECRET` (long random value for signed image URLs)
 - `GMAIL_SMTP_USER` (the Gmail account used to send form emails)
@@ -102,6 +110,7 @@ Run these before each release:
 ```bash
 npm run lint
 npm run build
+npm run test:chat
 ```
 
 If this project is inside a Git repository, also run:
@@ -113,11 +122,18 @@ git log -p --all -- .env .env.local
 
 ## Chatbot behavior
 
-- Model: `gemini-2.5-flash`
 - Backend route: `api/chat.js`
+- Smoke test: `npm run test:chat`
 - Session memory: frontend sends prior chat history with each request
+- Language handling: English, Tagalog, and Taglish responses based on user style
+- Input handling: vague, messy, slang-heavy, and incomplete portfolio questions are interpreted before answering
+- Tone adaptation: friendly, casual, confused, frustrated, excited, formal, or neutral tone matching
+- Internal model routing: shorter conversational requests prefer Groq, longer reasoning-heavy requests prefer Gemini, with automatic fallback when only one key is configured
+- Out-of-scope behavior: unrelated requests are refused with the same safe fallback message
 - Out-of-scope fallback message:
 
 ```text
 I can only answer questions related to my portfolio.
 ```
+
+`npm run test:chat` calls the backend handler directly with representative conversational and reasoning-heavy prompts, so you can verify the chat route without starting the local API server first.

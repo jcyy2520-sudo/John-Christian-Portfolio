@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { FiArrowLeft, FiGithub, FiExternalLink, FiChevronUp, FiChevronDown, FiSun, FiMoon, FiX, FiChevronLeft, FiChevronRight } from 'react-icons/fi'
 import './ProjectPage.css'
 
@@ -10,14 +10,23 @@ const ProjectPage = ({ project, theme, setTheme, getSecureAssetUrl, onBack }) =>
   const [isSystemUIExpanded, setIsSystemUIExpanded] = useState(false)
   const [selectedImageIndex, setSelectedImageIndex] = useState(null)
 
-  const sectionRefs = {
-    overview: useRef(null),
-    objectives: useRef(null),
-    features: useRef(null),
-    systemUI: useRef(null),
-    techStack: useRef(null),
-    developers: useRef(null),
-  }
+  const overviewRef = useRef(null)
+  const objectivesRef = useRef(null)
+  const featuresRef = useRef(null)
+  const systemUIRef = useRef(null)
+  const techStackRef = useRef(null)
+  const developersRef = useRef(null)
+  const sectionRefs = useMemo(
+    () => ({
+      overview: overviewRef,
+      objectives: objectivesRef,
+      features: featuresRef,
+      systemUI: systemUIRef,
+      techStack: techStackRef,
+      developers: developersRef,
+    }),
+    [],
+  )
 
   useEffect(() => {
     const handleScroll = () => {
@@ -46,7 +55,7 @@ const ProjectPage = ({ project, theme, setTheme, getSecureAssetUrl, onBack }) =>
       window.removeEventListener('scroll', handleScroll)
       window.removeEventListener('resize', handleResize)
     }
-  }, [])
+  }, [sectionRefs])
 
   const scrollToSection = (sectionId) => {
     const ref = sectionRefs[sectionId]
@@ -190,7 +199,7 @@ const ProjectPage = ({ project, theme, setTheme, getSecureAssetUrl, onBack }) =>
         {/* Main Content */}
         <main className="project-main-content">
           {/* Overview Section */}
-          <section id="overview" ref={sectionRefs.overview} className="content-section">
+          <section id="overview" ref={overviewRef} className="content-section">
             <div className="section-eyebrow">OVERVIEW</div>
             <h2 className="section-title">What is {project.title}?</h2>
             <div className="overview-grid">
@@ -216,7 +225,7 @@ const ProjectPage = ({ project, theme, setTheme, getSecureAssetUrl, onBack }) =>
           </section>
 
           {/* Objectives Section */}
-          <section id="objectives" ref={sectionRefs.objectives} className="content-section">
+          <section id="objectives" ref={objectivesRef} className="content-section">
             <div className="section-eyebrow">OBJECTIVES</div>
             <h2 className="section-title">What we set out to build</h2>
             <div className="objectives-list">
@@ -233,7 +242,7 @@ const ProjectPage = ({ project, theme, setTheme, getSecureAssetUrl, onBack }) =>
           </section>
 
           {/* Features Section */}
-          <section id="features" ref={sectionRefs.features} className="content-section">
+          <section id="features" ref={featuresRef} className="content-section">
             <div className="section-eyebrow">FEATURES</div>
             <h2 className="section-title">Core system capabilities</h2>
             <div className="features-grid">
@@ -248,7 +257,7 @@ const ProjectPage = ({ project, theme, setTheme, getSecureAssetUrl, onBack }) =>
           </section>
 
           {/* System UI Section */}
-          <section id="systemUI" ref={sectionRefs.systemUI} className="content-section">
+          <section id="systemUI" ref={systemUIRef} className="content-section">
             <div className="section-eyebrow">SYSTEM UI</div>
             <h2 className="section-title">Interface walkthrough</h2>
             
@@ -310,7 +319,7 @@ const ProjectPage = ({ project, theme, setTheme, getSecureAssetUrl, onBack }) =>
 
 
           {/* Tech Stack Section */}
-          <section id="techStack" ref={sectionRefs.techStack} className="content-section">
+          <section id="techStack" ref={techStackRef} className="content-section">
             <div className="section-eyebrow">TECH STACK</div>
             <h2 className="section-title">Technologies used and why</h2>
             <div className="tech-grid">
@@ -329,7 +338,7 @@ const ProjectPage = ({ project, theme, setTheme, getSecureAssetUrl, onBack }) =>
           </section>
 
           {/* Developers Section */}
-          <section id="developers" ref={sectionRefs.developers} className="content-section">
+          <section id="developers" ref={developersRef} className="content-section">
             <div className="section-eyebrow">DEVELOPERS</div>
             <h2 className="section-title">Meet the team</h2>
             <div className="team-grid">

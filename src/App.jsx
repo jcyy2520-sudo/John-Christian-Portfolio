@@ -35,7 +35,7 @@ import './App.css'
 import ProjectPage from './components/ProjectPage'
 import PlexusBackground from './components/PlexusBackground'
 
-function useFadeIn(...triggers) {
+function useFadeIn(exhibition, currentPath) {
   const ref = useRef(null)
 
   useEffect(() => {
@@ -56,7 +56,7 @@ function useFadeIn(...triggers) {
 
     observer.observe(element)
     return () => observer.disconnect()
-  }, triggers) // Re-run when any trigger changes
+  }, [exhibition, currentPath])
 
   return ref
 }

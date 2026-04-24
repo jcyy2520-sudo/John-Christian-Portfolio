@@ -115,6 +115,10 @@ function toProjectPurpose(summary) {
   )
 }
 
+function toTaglishProjectPurpose(summary) {
+  return toProjectPurpose(summary).replace(/^(a|an)\s+/i, '')
+}
+
 function buildPortfolioContext() {
   const projectLines = portfolioProjects
     .map((project, index) => {
@@ -789,7 +793,7 @@ function buildBestProjectFallback(language) {
 
   if (language === 'tagalog' || language === 'taglish') {
     return [
-      `Yung best proof ng full-stack capability ko ay yung ${FLAGSHIP_PROJECT.title} kasi ito ay ${flagshipProjectDescription.toLowerCase()}.`,
+      `Yung best proof ng full-stack capability ko ay yung ${FLAGSHIP_PROJECT.title} kasi ${toTaglishProjectPurpose(FLAGSHIP_PROJECT.summary).toLowerCase()} ito.`,
       `Ginamit ko rito ang ${flagshipStack}: Laravel para solid ang backend flow at auth, Blade para simple at tightly integrated ang UI sa server-rendered setup, at MySQL para maayos ang relational student data. Trade-off niya, mas less component-driven siya kaysa React, pero mas simple at mas bagay siya sa structured portal workflow.`,
     ].join(' ')
   }
@@ -812,7 +816,7 @@ function buildSkillStackFallback(language) {
   if (language === 'tagalog' || language === 'taglish') {
     return [
       `Yung pinaka gamit kong tech stack ay ${primaryStack}, depende sa kailangan ng project, pero pinaka madalas kong nagagamit ang Laravel para sa core full-stack work ko.`,
-      `Ginamit ko ang ${FLAGSHIP_PROJECT.stack.join(', ')} sa ${FLAGSHIP_PROJECT.title} para buuin ang ${toProjectPurpose(FLAGSHIP_PROJECT.summary).toLowerCase()}. Ginamit ko rin ang ${secondaryProject.stack.join(', ')} sa ${secondaryProject.title}, tapos ${frontendProject.stack[0]} naman ang ginamit ko sa ${frontendProject.title} para buuin ang ${toProjectPurpose(frontendProject.summary).toLowerCase()}.`,
+      `Ginamit ko ang ${FLAGSHIP_PROJECT.stack.join(', ')} sa ${FLAGSHIP_PROJECT.title} para buuin ang ${toTaglishProjectPurpose(FLAGSHIP_PROJECT.summary).toLowerCase()}. Ginamit ko rin ang ${secondaryProject.stack.join(', ')} sa ${secondaryProject.title}, tapos ${frontendProject.stack[0]} naman ang ginamit ko sa ${frontendProject.title} para buuin ang ${toTaglishProjectPurpose(frontendProject.summary).toLowerCase()}.`,
     ].join(' ')
   }
 
